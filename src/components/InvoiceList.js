@@ -3,12 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { fetchInvoices } from "../redux/actions";
 
-const InvoiceList = ({
-  invoices,
-  fetchInvoices,
-  selectedCustomers,
-  customers,
-}) => {
+const InvoiceList = ({ invoices, fetchInvoices, selectedCustomers }) => {
   const submitInvoices = () => {
     invoices.forEach((invoice) => {
       console.log(`Submitting invoice ${invoice.id} to API...`);
@@ -18,7 +13,7 @@ const InvoiceList = ({
   };
 
   const handleFetchInvoices = () => {
-    fetchInvoices(selectedCustomers, customers);
+    fetchInvoices(selectedCustomers);
   };
 
   return (
