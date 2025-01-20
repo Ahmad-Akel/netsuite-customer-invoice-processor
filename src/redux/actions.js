@@ -1,39 +1,45 @@
-export const fetchCustomers = () => {
-  return (dispatch) => {
-    // Simulate API call
-    const customersList = [
-      { id: "1", name: "Customer A", country: "US" },
-      { id: "2", name: "Customer B", country: "UK" },
-      { id: "3", name: "Customer C", country: "Canada" },
-    ];
-    dispatch({ type: "FETCH_CUSTOMERS_SUCCESS", payload: customersList });
-  };
+import apiClient from "../api/apiClient";
+import { toast } from "react-toastify";
+import {
+  FETCH_CUSTOMERS_REQUEST,
+  FETCH_CUSTOMERS_SUCCESS,
+  FETCH_CUSTOMERS_ERROR,
+  FETCH_INVOICES_REQUEST,
+  FETCH_INVOICES_SUCCESS,
+  FETCH_INVOICES_ERROR,
+} from "./actionTypes";
+
+export const fetchCustomers = () => async (dispatch) => {
+  dispatch({ type: FETCH_CUSTOMERS_REQUEST });
+  try {
+    const response = await apiClient.get("/customers");
+    dispatch({ type: FETCH_CUSTOMERS_SUCCESS, payload: response.data });
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    toast.error("Failed to fetch customers. Please try again.");
+    dispatch({ type: FETCH_CUSTOMERS_ERROR, payload: error.message });
+  }
 };
 
-export const fetchInvoices = (selectedCustomers, customers) => {
-  return (dispatch) => {
-    // Simulate API call
-    const selectedCustomerDetails = customers.filter((customer) =>
-      selectedCustomers.includes(customer.id)
-    );
+export const fetchInvoices =
+  (selectedCustomers) => async (dispatch, getState) => {
+    dispatch({ type: FETCH_INVOICES_REQUEST });
+    const { customers } = getState();
 
-    const fetchedInvoices = selectedCustomerDetails.flatMap((customer) => [
-      {
-        id: `${customer.id}01`,
-        amount: 500,
-        status: "Paid",
-        customer: customer.name,
-        country: customer.country,
-      },
-      {
-        id: `${customer.id}02`,
-        amount: 1200,
-        status: "Open",
-        customer: customer.name,
-        country: customer.country,
-      },
-    ]);
+    const customerNames = customers
+      .filter((customer) => selectedCustomers.includes(customer.id))
+      .map((customer) => customer.name);
 
-    dispatch({ type: "FETCH_INVOICES_SUCCESS", payload: fetchedInvoices });
+    console.log("Sending customer names:", customerNames);
+
+    try {
+      const response = await apiClient.post("/invoices", {
+        customerIds: customerNames,
+      });
+      console.log("Fetched invoices:", response.data);
+      dispatch({ type: FETCH_INVOICES_SUCCESS, payload: response.data });
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      dispatch({ type: FETCH_INVOICES_ERROR, payload: error.message });
+    }
   };
-};
